@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-07-06T12:00:00+00:00",
+  "scenario_id": "637f20cafde22ff8",
+  "challenge": "sim_agents_2025",
+  "gates": [
+    {"name": "submission_specs", "passed": true, "detail": "32 rollouts, 80 steps, agent IDs OK"},
+    {"name": "scenario_id_match", "passed": true, "detail": "rollouts='637f20cafde22ff8' scenario='637f20cafde22ff8'"}
+  ],
+  "format_ok": true,
+  "metametric": 0.712,
+  "kinematic_score": 0.441,
+  "interactive_score": 0.698,
+  "map_based_score": 0.801,
+  "features": [
+    {"name": "linear_speed", "likelihood": 0.52, "weight": 0.05, "bucket": "kinematic"},
+    {"name": "linear_acceleration", "likelihood": 0.48, "weight": 0.05, "bucket": "kinematic"},
+    {"name": "angular_speed", "likelihood": 0.41, "weight": 0.05, "bucket": "kinematic"},
+    {"name": "angular_acceleration", "likelihood": 0.39, "weight": 0.05, "bucket": "kinematic"},
+    {"name": "distance_to_nearest_object", "likelihood": 0.67, "weight": 0.10, "bucket": "interactive"},
+    {"name": "collision_indication", "likelihood": 0.71, "weight": 0.25, "bucket": "interactive"},
+    {"name": "time_to_collision", "likelihood": 0.55, "weight": 0.10, "bucket": "interactive"},
+    {"name": "distance_to_road_edge", "likelihood": 0.82, "weight": 0.05, "bucket": "map_based"},
+    {"name": "offroad_indication", "likelihood": 0.88, "weight": 0.25, "bucket": "map_based"},
+    {"name": "traffic_light_violation", "likelihood": 0.31, "weight": 0.05, "bucket": "map_based"}
+  ],
+  "average_displacement_error": 1.42,
+  "min_average_displacement_error": 1.38,
+  "simulated_collision_rate": 0.02,
+  "simulated_offroad_rate": 0.01,
+  "simulated_traffic_light_violation_rate": 0.08,
+  "evaluated_agent_ids": [198, 204],
+  "simulated_agent_ids": [198, 204, 301, 302, 303],
+  "notes": ["Sample receipt for dashboard demo — run `wosac-preflight smoke` for live scores."],
+  "errors": []
+}

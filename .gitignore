@@ -1,0 +1,6 @@
+.preflight_out.json
+__pycache__/
+*.egg-info/
+.venv/
+receipts/
+.pytest_cache/

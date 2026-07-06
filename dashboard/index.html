@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WOSAC Preflight</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --surface: #12161e;
+      --surface2: #1a2030;
+      --border: #2a3348;
+      --text: #e8edf5;
+      --muted: #8b97ad;
+      --accent: #5b9cf5;
+      --good: #3dd68c;
+      --warn: #f5b83d;
+      --bad: #f56565;
+      --kinematic: #7c6cf0;
+      --interactive: #5b9cf5;
+      --map: #3dd68c;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #141a24 0%, var(--bg) 100%);
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+    header p { color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
+    .badge {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    main { max-width: 1280px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+    .toolbar {
+      display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .toolbar input[type=file] { display: none; }
+    .btn {
+      font-family: inherit; font-size: 0.85rem; padding: 0.45rem 0.9rem;
+      border-radius: 6px; border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); cursor: pointer;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: #1e3a5f; border-color: #2d5a8e; color: #b8d4ff; }
+    .grid { display: grid; gap: 1rem; }
+    .grid-hero { grid-template-columns: 280px 1fr 1fr; }
+    @media (max-width: 1000px) { .grid-hero { grid-template-columns: 1fr; } }
+    .grid-mid { grid-template-columns: 1fr 1fr; margin-top: 1rem; }
+    @media (max-width: 800px) { .grid-mid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .card h2 {
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 1rem; font-weight: 500;
+    }
+    .metametric {
+      font-size: 3rem; font-weight: 600; letter-spacing: -0.04em;
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .metametric-label { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+    .bucket-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    .bucket {
+      flex: 1; padding: 0.75rem; border-radius: 8px; background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    .bucket .val { font-family: "IBM Plex Mono", monospace; font-size: 1.35rem; font-weight: 500; }
+    .bucket .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+    .bucket.kinematic .val { color: var(--kinematic); }
+    .bucket.interactive .val { color: var(--interactive); }
+    .bucket.map_based .val { color: var(--map); }
+    .gates { list-style: none; }
+    .gates li {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem;
+    }
+    .gates li:last-child { border-bottom: none; }
+    .gate-icon { font-size: 0.9rem; flex-shrink: 0; }
+    .gate-pass { color: var(--good); }
+    .gate-fail { color: var(--bad); }
+    .rates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .rate {
+      text-align: center; padding: 1rem 0.5rem; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+    }
+    .rate .val { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; }
+    .rate .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; }
+    .rate.high .val { color: var(--bad); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--border); }
+    td { padding: 0.45rem 0.4rem; border-bottom: 1px solid #1e2433; font-family: "IBM Plex Mono", monospace; }
+    td.name { font-family: "IBM Plex Sans", sans-serif; }
+    .bar-cell { width: 40%; }
+    .bar-bg { height: 6px; background: #1e2433; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+    .tag {
+      display: inline-block; font-size: 0.65rem; padding: 0.1rem 0.4rem;
+      border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .tag-kinematic { background: #2a2540; color: var(--kinematic); }
+    .tag-interactive { background: #1a2840; color: var(--interactive); }
+    .tag-map_based { background: #1a3028; color: var(--map); }
+    .baseline-table td { font-family: "IBM Plex Mono", monospace; }
+    .scenario-id { font-family: "IBM Plex Mono", monospace; color: var(--accent); font-size: 0.9rem; }
+    footer { margin-top: 2rem; color: var(--muted); font-size: 0.75rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>WOSAC Preflight</h1>
+      <p>Local 2025 Sim Agents metametric breakdown before leaderboard submission</p>
+    </div>
+    <span class="badge">waymo-open-dataset official metrics</span>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <label class="btn btn-primary">
+        Load receipt JSON
+        <input type="file" id="fileInput" accept=".json" />
+      </label>
+      <button class="btn" id="loadSample">Load sample</button>
+      <span class="scenario-id" id="scenarioLabel"></span>
+    </div>
+
+    <div class="grid grid-hero">
+      <div class="card">
+        <h2>Meta-metric</h2>
+        <div class="metametric" id="metametric">—</div>
+        <div class="metametric-label">2025 weighted realism score</div>
+        <div class="bucket-row">
+          <div class="bucket kinematic">
+            <div class="val" id="kin">—</div>
+            <div class="lbl">Kinematic</div>
+          </div>
+          <div class="bucket interactive">
+            <div class="val" id="int">—</div>
+            <div class="lbl">Interactive</div>
+          </div>
+          <div class="bucket map_based">
+            <div class="val" id="map">—</div>
+            <div class="lbl">Map-based</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Bucket radar</h2>
+        <canvas id="radarChart" height="200"></canvas>
+      </div>
+      <div class="card">
+        <h2>Format gates</h2>
+        <ul class="gates" id="gateList"></ul>
+      </div>
+    </div>
+
+    <div class="grid grid-mid">
+      <div class="card">
+        <h2>Per-feature likelihood (weakest → strongest)</h2>
+        <table id="featureTable">
+          <thead>
+            <tr><th>Feature</th><th>Bucket</th><th>Likelihood</th><th class="bar-cell">Weight</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Simulated safety rates</h2>
+        <div class="rates" style="margin-bottom:1.25rem">
+          <div class="rate" id="rateCollision"><div class="val">—</div><div class="lbl">Collision</div></div>
+          <div class="rate" id="rateOffroad"><div class="val">—</div><div class="lbl">Off-road</div></div>
+          <div class="rate" id="rateTl"><div class="val">—</div><div class="lbl">TL violation</div></div>
+        </div>
+        <h2>vs leaderboard baselines</h2>
+        <table class="baseline-table">
+          <thead><tr><th>Method</th><th>Meta</th><th>Δ yours</th></tr></thead>
+          <tbody id="baselineBody"></tbody>
+        </table>
+        <p style="margin-top:1rem;color:var(--muted);font-size:0.8rem" id="adeLabel"></p>
+      </div>
+    </div>
+    <footer>
+      Not affiliated with Waymo. Uses official WOSAC 2025 metric definitions via waymo-open-dataset.
+      <a href="https://github.com/Abhishek21g/wosac-preflight" style="color:var(--accent)">GitHub</a>
+    </footer>
+  </main>
+
+  <script>
+    const BASELINES = { logged_oracle: 0.823, sumo: 0.653, trafficbots: 0.699, smart_r1: 0.786 };
+    let radarChart = null;
+
+    function fmt(v, d = 3) {
+      return v == null ? "—" : Number(v).toFixed(d);
+    }
+
+    function bucketClass(b) {
+      return b === "kinematic" ? "tag-kinematic" : b === "interactive" ? "tag-interactive" : "tag-map_based";
+    }
+
+    function renderReceipt(r) {
+      document.getElementById("scenarioLabel").textContent = r.scenario_id ? `scenario ${r.scenario_id}` : "";
+      document.getElementById("metametric").textContent = fmt(r.metametric);
+      document.getElementById("kin").textContent = fmt(r.kinematic_score);
+      document.getElementById("int").textContent = fmt(r.interactive_score);
+      document.getElementById("map").textContent = fmt(r.map_based_score);
+
+      const gates = document.getElementById("gateList");
+      gates.innerHTML = (r.gates || []).map(g => `
+        <li>
+          <span class="gate-icon ${g.passed ? "gate-pass" : "gate-fail"}">${g.passed ? "✓" : "✗"}</span>
+          <span><strong>${g.name}</strong><br/><span style="color:var(--muted)">${g.detail}</span></span>
+        </li>`).join("");
+
+      const feats = [...(r.features || [])].sort((a, b) => (a.likelihood ?? 0) - (b.likelihood ?? 0));
+      const tbody = document.querySelector("#featureTable tbody");
+      tbody.innerHTML = feats.map(f => {
+        const pct = f.likelihood != null ? Math.round(f.likelihood * 100) : 0;
+        const color = f.bucket === "kinematic" ? "#7c6cf0" : f.bucket === "interactive" ? "#5b9cf5" : "#3dd68c";
+        return `<tr>
+          <td class="name">${f.name.replace(/_/g, " ")}</td>
+          <td><span class="tag ${bucketClass(f.bucket)}">${f.bucket}</span></td>
+          <td>${fmt(f.likelihood)}</td>
+          <td class="bar-cell">
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:2px">w=${f.weight}</div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+          </td></tr>`;
+      }).join("");
+
+      [["rateCollision", r.simulated_collision_rate], ["rateOffroad", r.simulated_offroad_rate], ["rateTl", r.simulated_traffic_light_violation_rate]].forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        el.querySelector(".val").textContent = fmt(val, 2);
+        el.classList.toggle("high", val != null && val > 0.05);
+      });
+
+      const bb = document.getElementById("baselineBody");
+      if (r.metametric != null) {
+        bb.innerHTML = Object.entries(BASELINES).map(([name, score]) => {
+          const d = r.metametric - score;
+          const col = d >= 0 ? "var(--good)" : "var(--bad)";
+          return `<tr><td>${name}</td><td>${fmt(score)}</td><td style="color:${col}">${d >= 0 ? "+" : ""}${d.toFixed(3)}</td></tr>`;
+        }).join("");
+      }
+
+      document.getElementById("adeLabel").textContent =
+        r.average_displacement_error != null
+          ? `ADE ${fmt(r.average_displacement_error, 2)} m · minADE ${fmt(r.min_average_displacement_error, 2)} m`
+          : "";
+
+      const ctx = document.getElementById("radarChart");
+      if (radarChart) radarChart.destroy();
+      radarChart = new Chart(ctx, {
+        type: "radar",
+        data: {
+          labels: ["Kinematic", "Interactive", "Map-based"],
+          datasets: [{
+            label: "Your submission",
+            data: [r.kinematic_score, r.interactive_score, r.map_based_score].map(v => v ?? 0),
+            borderColor: "#5b9cf5",
+            backgroundColor: "rgba(91,156,245,0.15)",
+            pointBackgroundColor: "#5b9cf5",
+          }, {
+            label: "SMART-R1 (ref)",
+            data: [0.494, 0.811, 0.920],
+            borderColor: "#8b97ad",
+            backgroundColor: "rgba(139,151,173,0.05)",
+            borderDash: [4, 4],
+            pointRadius: 0,
+          }],
+        },
+        options: {
+          scales: {
+            r: {
+              min: 0, max: 1,
+              ticks: { display: false },
+              grid: { color: "#2a3348" },
+              angleLines: { color: "#2a3348" },
+              pointLabels: { color: "#8b97ad", font: { size: 11 } },
+            },
+          },
+          plugins: { legend: { labels: { color: "#8b97ad", boxWidth: 12 } } },
+        },
+      });
+    }
+
+    async function loadJson(url) {
+      const res = await fetch(url);
+      return res.json();
+    }
+
+    document.getElementById("fileInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      renderReceipt(JSON.parse(await file.text()));
+    });
+
+    document.getElementById("loadSample").addEventListener("click", () => {
+      loadJson("sample_receipt.json").then(renderReceipt);
+    });
+
+    (async () => {
+      const params = new URLSearchParams(location.search);
+      const receiptParam = params.get("receipt");
+      if (receiptParam) {
+        try { renderReceipt(await loadJson(receiptParam)); return; } catch (_) {}
+      }
+      loadJson("sample_receipt.json").then(renderReceipt);
+    })();
+  </script>
+</body>
+</html>
