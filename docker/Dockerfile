@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir --no-deps "waymo-open-dataset-tf-2-12-0==1.6.7"
 
 WORKDIR /app
 COPY docker/score_one.py /app/score_one.py
+COPY vendor/testdata /app/vendor/testdata
 
 ENV PYTHONPATH=/app
 ENTRYPOINT ["python", "/app/score_one.py"]

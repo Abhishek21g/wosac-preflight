@@ -12,12 +12,11 @@ from pathlib import Path
 import tensorflow as tf
 from waymo_open_dataset.protos import scenario_pb2
 from waymo_open_dataset.protos import sim_agents_submission_pb2
-from waymo_open_dataset.utils import test_utils
 from waymo_open_dataset.utils.sim_agents import submission_specs
-from waymo_open_dataset.utils.sim_agents import test_utils as sa_test_utils
 from waymo_open_dataset.wdl_limited.sim_agents_metrics import metrics
 
 CHALLENGE = submission_specs.ChallengeType.SIM_AGENTS
+VENDOR = Path(__file__).resolve().parent / "vendor" / "testdata"
 
 
 def _load_scenario(path: str, index: int) -> scenario_pb2.Scenario:
@@ -27,8 +26,12 @@ def _load_scenario(path: str, index: int) -> scenario_pb2.Scenario:
       if i == index:
         return scenario_pb2.Scenario.FromString(raw)
     raise IndexError(f"scenario index {index} out of range in {path}")
-  # Bundled smoke scenario
-  return test_utils.get_womd_test_scenario()
+  # Bundled smoke scenario from vendor testdata
+  vendor = VENDOR
+  scenario_path = vendor / "motion_data_one_scenario.tfrecord"
+  if not scenario_path.exists():
+    raise FileNotFoundError(f"Missing bundled scenario: {scenario_path}")
+  return _load_scenario(str(scenario_path), 0)
 
 
 def _load_rollouts(path: str, scenario_id: str | None) -> sim_agents_submission_pb2.ScenarioRollouts:
@@ -148,11 +151,10 @@ def run_score(scenario, rollouts) -> dict:
 
 
 def run_smoke() -> dict:
-  scenario = test_utils.get_womd_test_scenario()
-  submission = sa_test_utils.load_test_submission()
-  rollouts = submission.scenario_rollouts[0]
+  scenario = _load_scenario(str(VENDOR / "motion_data_one_scenario.tfrecord"), 0)
+  rollouts = _load_rollouts(str(VENDOR / "test_submission.binproto"), scenario.scenario_id)
   result = run_score(scenario, rollouts)
-  result["notes"] = ["Bundled WOMD test scenario + linear-extrapolation submission."]
+  result["notes"] = ["Bundled WOMD scenario + linear-extrapolation submission from vendor/testdata."]
   return result
 
 
