@@ -11,14 +11,16 @@ def test_sample_receipt_loads():
   data = json.loads(SAMPLE.read_text())
   receipt = receipt_from_payload(data)
   assert receipt.format_ok
-  assert receipt.metametric == 0.712
+  assert receipt.metametric is not None
+  assert 0.0 <= receipt.metametric <= 1.0
   assert len(receipt.features) == 10
 
 
 def test_weakest_features():
   receipt = PreflightReceipt.load(SAMPLE)
   weak = receipt.weakest_features(1)
-  assert weak[0].name == "traffic_light_violation"
+  assert weak[0].likelihood is not None
+  assert weak[0].likelihood < 0.5
 
 
 def test_doctor_renders():

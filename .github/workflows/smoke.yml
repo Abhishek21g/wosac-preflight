@@ -7,6 +7,7 @@ on:
     paths:
       - 'docker/**'
       - 'wosac_preflight/**'
+      - 'pyproject.toml'
       - '.github/workflows/smoke.yml'
 
 jobs:
@@ -42,8 +43,16 @@ jobs:
           pip install -e .
           wosac-preflight doctor receipts/smoke.json
 
-      - name: Update bundled smoke receipt for dashboard
-        run: cp receipts/smoke.json dashboard/smoke_receipt.json
+      - name: Commit real smoke receipt to dashboard
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp receipts/smoke.json dashboard/sample_receipt.json
+          cp receipts/smoke.json dashboard/smoke_receipt.json
+          git add dashboard/sample_receipt.json dashboard/smoke_receipt.json || true
+          git diff --staged --quiet || git commit -m "Update dashboard with latest official smoke receipt [skip ci]"
+          git push || true
 
       - uses: actions/upload-artifact@v4
         with:
