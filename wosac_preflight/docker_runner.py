@@ -18,7 +18,11 @@ def docker_available() -> bool:
 
 def ensure_image() -> None:
   if not docker_available():
-    raise RuntimeError("Docker is required for official WOSAC scoring on macOS.")
+    raise RuntimeError(
+        "Docker is required for official WOSAC scoring on macOS.\n"
+        "Tip: free ~4GB disk for the TensorFlow image, or run smoke on GitHub Actions:\n"
+        "  gh workflow run smoke --repo Abhishek21g/wosac-preflight"
+    )
   inspect = subprocess.run(
       ["docker", "image", "inspect", IMAGE_NAME],
       capture_output=True,

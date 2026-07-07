@@ -1,0 +1,37 @@
+name: smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - 'docker/**'
+      - 'wosac_preflight/**'
+      - '.github/workflows/smoke.yml'
+
+jobs:
+  wosac-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build scoring image
+        run: docker build -t wosac-preflight:latest -f docker/Dockerfile .
+
+      - name: Run official WOSAC smoke
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            wosac-preflight:latest \
+            --mode smoke \
+            --output /workspace/receipts/smoke.json
+
+      - name: Show doctor summary
+        run: |
+          pip install -e .
+          wosac-preflight doctor receipts/smoke.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smoke-receipt
+          path: receipts/smoke.json
