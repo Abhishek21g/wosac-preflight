@@ -16,7 +16,14 @@ from waymo_open_dataset.utils.sim_agents import submission_specs
 from waymo_open_dataset.wdl_limited.sim_agents_metrics import metrics
 
 CHALLENGE = submission_specs.ChallengeType.SIM_AGENTS
-VENDOR = Path(__file__).resolve().parent / "vendor" / "testdata"
+
+
+def _vendor_dir() -> Path:
+  here = Path(__file__).resolve().parent
+  for candidate in (here / "vendor" / "testdata", here.parent / "vendor" / "testdata"):
+    if candidate.exists():
+      return candidate
+  raise FileNotFoundError("vendor/testdata not found (expected bundled smoke fixtures)")
 
 
 def _load_scenario(path: str, index: int) -> scenario_pb2.Scenario:
@@ -27,7 +34,7 @@ def _load_scenario(path: str, index: int) -> scenario_pb2.Scenario:
         return scenario_pb2.Scenario.FromString(raw)
     raise IndexError(f"scenario index {index} out of range in {path}")
   # Bundled smoke scenario from vendor testdata
-  vendor = VENDOR
+  vendor = _vendor_dir()
   scenario_path = vendor / "motion_data_one_scenario.tfrecord"
   if not scenario_path.exists():
     raise FileNotFoundError(f"Missing bundled scenario: {scenario_path}")
@@ -151,8 +158,9 @@ def run_score(scenario, rollouts) -> dict:
 
 
 def run_smoke() -> dict:
-  scenario = _load_scenario(str(VENDOR / "motion_data_one_scenario.tfrecord"), 0)
-  rollouts = _load_rollouts(str(VENDOR / "test_submission.binproto"), scenario.scenario_id)
+  vendor = _vendor_dir()
+  scenario = _load_scenario(str(vendor / "motion_data_one_scenario.tfrecord"), 0)
+  rollouts = _load_rollouts(str(vendor / "test_submission.binproto"), scenario.scenario_id)
   result = run_score(scenario, rollouts)
   result["notes"] = ["Bundled WOMD scenario + linear-extrapolation submission from vendor/testdata."]
   return result
