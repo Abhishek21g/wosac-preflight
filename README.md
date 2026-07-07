@@ -18,8 +18,8 @@ There is no local tool to answer:
 
 ```bash
 pip install -e .
-wosac-preflight smoke          # bundled WOMD test scenario (Docker)
-wosac-preflight demo           # open dashboard with sample receipt
+wosac-preflight demo          # https://enaguthi.com/wosac-preflight/site/
+wosac-preflight smoke         # bundled WOMD test scenario (Docker)
 
 # Your validation shard + rollouts binproto:
 wosac-preflight score \
@@ -66,3 +66,5 @@ Scoring uses `waymo_open_dataset.wdl_limited.sim_agents_metrics` (Waymo license 
 ## Not affiliated with Waymo
 
 Independent tool by [Abhishek Enaguthi](https://enaguthi.com). Complements upstream Waymax/WOMD — not a substitute for the official submission server.
+
+**Live demo:** https://enaguthi.com/wosac-preflight/site/

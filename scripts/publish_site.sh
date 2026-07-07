@@ -2,9 +2,20 @@
 # Publish dashboard to enaguthi.com/wosac-preflight/site/
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SITE_ROOT="${HOME}/Projects/Abhishek21g.github.io/wosac-preflight/site"
-mkdir -p "$SITE_ROOT"
-cp "$ROOT/dashboard/index.html" "$SITE_ROOT/"
-cp "$ROOT/dashboard/sample_receipt.json" "$SITE_ROOT/"
-echo "Copied to $SITE_ROOT"
-echo "Commit and push Abhishek21g.github.io to publish."
+SITE_REPO="${HOME}/Documents/Abhishek21g.github.io"
+DEST="${SITE_REPO}/wosac-preflight/site"
+PUBLIC_DEST="${SITE_REPO}/public/wosac-preflight/site"
+
+for target in "$DEST" "$PUBLIC_DEST"; do
+  mkdir -p "$target"
+  cp "$ROOT/dashboard/index.html" "$target/"
+  cp "$ROOT/dashboard/styles.css" "$target/"
+  cp "$ROOT/dashboard/app.js" "$target/"
+  cp "$ROOT/dashboard/favicon.svg" "$target/"
+  cp "$ROOT/dashboard/sample_receipt.json" "$target/"
+  echo "→ $target"
+done
+
+echo ""
+echo "Published locally. Commit Abhishek21g.github.io and push to go live:"
+echo "  cd $SITE_REPO && git add wosac-preflight public/wosac-preflight && git commit -m 'Publish WOSAC Preflight site' && git push"
