@@ -15,21 +15,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build scoring image
-        run: docker build -t wosac-preflight:latest -f docker/Dockerfile .
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install official WOSAC metrics (no jax — not used by sim_agents_metrics)
+        run: |
+          pip install \
+            "tensorflow==2.13.0" \
+            "tensorflow_probability==0.21.0" \
+            "numpy==1.23.5" \
+            "pandas==1.5.3" \
+            "scikit-learn==1.2.2" \
+            "absl-py==1.4.0" \
+            "immutabledict==2.2.0" \
+            "protobuf>=3.20,<5"
+          pip install --no-deps "waymo-open-dataset-tf-2-12-0==1.6.7"
 
       - name: Run official WOSAC smoke
         run: |
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            wosac-preflight:latest \
-            --mode smoke \
-            --output /workspace/receipts/smoke.json
+          mkdir -p receipts
+          python docker/score_one.py --mode smoke --output receipts/smoke.json
 
-      - name: Show doctor summary
+      - name: Doctor summary
         run: |
           pip install -e .
           wosac-preflight doctor receipts/smoke.json
+
+      - name: Update bundled smoke receipt for dashboard
+        run: cp receipts/smoke.json dashboard/smoke_receipt.json
 
       - uses: actions/upload-artifact@v4
         with:
