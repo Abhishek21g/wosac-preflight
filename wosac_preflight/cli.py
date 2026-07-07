@@ -28,6 +28,11 @@ def main(argv: list[str] | None = None) -> int:
 
   smoke_p = sub.add_parser("smoke", help="Run bundled WOMD test scenario (Docker)")
   smoke_p.add_argument("-o", "--output", type=Path, default=Path("receipts/smoke.json"))
+  smoke_p.add_argument(
+      "--from-ci",
+      action="store_true",
+      help="Download latest official smoke receipt from GitHub Actions (no Docker)",
+  )
   smoke_p.set_defaults(handler=_cmd_smoke)
 
   val_p = sub.add_parser("validate", help="Format gate only (32 rollouts, agent IDs)")
@@ -63,9 +68,13 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _cmd_smoke(args) -> int:
-  print("Building/running Docker smoke test (official WOSAC metrics)...")
   args.output.parent.mkdir(parents=True, exist_ok=True)
-  data = docker_runner.run_mode("smoke", output=args.output)
+  if args.from_ci:
+    print("Fetching official smoke receipt from GitHub Actions...")
+    data = docker_runner.fetch_ci_smoke(args.output)
+  else:
+    print("Running Docker smoke test (official WOSAC metrics)...")
+    data = docker_runner.run_mode("smoke", output=args.output)
   receipt = receipt_from_payload(data)
   print(render_doctor(receipt))
   print(f"\nWrote {args.output}")
