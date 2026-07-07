@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,6 +17,13 @@ from waymo_open_dataset.utils.sim_agents import submission_specs
 from waymo_open_dataset.wdl_limited.sim_agents_metrics import metrics
 
 CHALLENGE = submission_specs.ChallengeType.SIM_AGENTS
+
+
+def _ensure_waymo_cwd() -> None:
+  """metrics.load_metrics_config opens paths relative to site-packages parent."""
+  import waymo_open_dataset
+
+  os.chdir(Path(waymo_open_dataset.__file__).resolve().parent.parent)
 
 
 def _vendor_dir() -> Path:
