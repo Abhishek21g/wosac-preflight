@@ -3,7 +3,7 @@ name = "wosac-preflight"
 version = "0.1.0"
 description = "Local WOSAC evaluator and debugger before 44k-scenario leaderboard submission."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
   "protobuf>=4.25",
 ]
