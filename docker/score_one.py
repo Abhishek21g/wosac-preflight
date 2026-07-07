@@ -6,12 +6,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
 import tensorflow as tf
+from google.protobuf import text_format
 from waymo_open_dataset.protos import scenario_pb2
+from waymo_open_dataset.protos import sim_agents_metrics_pb2
 from waymo_open_dataset.protos import sim_agents_submission_pb2
 from waymo_open_dataset.utils.sim_agents import submission_specs
 from waymo_open_dataset.wdl_limited.sim_agents_metrics import metrics
@@ -19,11 +20,21 @@ from waymo_open_dataset.wdl_limited.sim_agents_metrics import metrics
 CHALLENGE = submission_specs.ChallengeType.SIM_AGENTS
 
 
-def _ensure_waymo_cwd() -> None:
-  """metrics.load_metrics_config opens paths relative to site-packages parent."""
+def _load_metrics_config() -> sim_agents_metrics_pb2.SimAgentMetricsConfig:
+  """Load 2025 config from wheel or vendored copy (wheel omits textproto on some installs)."""
   import waymo_open_dataset
 
-  os.chdir(Path(waymo_open_dataset.__file__).resolve().parent.parent)
+  pkg = Path(waymo_open_dataset.__file__).resolve().parent
+  candidates = [
+      pkg / "wdl_limited" / "sim_agents_metrics" / "challenge_2025_sim_agents_config.textproto",
+      _vendor_dir() / "challenge_2025_sim_agents_config.textproto",
+  ]
+  for path in candidates:
+    if path.exists():
+      config = sim_agents_metrics_pb2.SimAgentMetricsConfig()
+      text_format.Parse(path.read_text(encoding="utf-8"), config)
+      return config
+  raise FileNotFoundError("challenge_2025_sim_agents_config.textproto not found")
 
 
 def _vendor_dir() -> Path:
@@ -142,7 +153,7 @@ def run_score(scenario, rollouts) -> dict:
     base["errors"] = ["Format validation failed; skipping official metrics."]
     return base
 
-  config = metrics.load_metrics_config(CHALLENGE)
+  config = _load_metrics_config()
   scenario_metrics = metrics.compute_scenario_metrics_for_bundle(
       config, scenario, rollouts, CHALLENGE
   )
