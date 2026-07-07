@@ -21,20 +21,10 @@ CHALLENGE = submission_specs.ChallengeType.SIM_AGENTS
 
 
 def _load_metrics_config() -> sim_agents_metrics_pb2.SimAgentMetricsConfig:
-  """Load 2025 config from wheel or vendored copy (wheel omits textproto on some installs)."""
-  import waymo_open_dataset
-
-  pkg = Path(waymo_open_dataset.__file__).resolve().parent
-  candidates = [
-      pkg / "wdl_limited" / "sim_agents_metrics" / "challenge_2025_sim_agents_config.textproto",
-      _vendor_dir() / "challenge_2025_sim_agents_config.textproto",
-  ]
-  for path in candidates:
-    if path.exists():
-      config = sim_agents_metrics_pb2.SimAgentMetricsConfig()
-      text_format.Parse(path.read_text(encoding="utf-8"), config)
-      return config
-  raise FileNotFoundError("challenge_2025_sim_agents_config.textproto not found")
+  path = _vendor_dir() / "challenge_2025_sim_agents_config.textproto"
+  config = sim_agents_metrics_pb2.SimAgentMetricsConfig()
+  text_format.Parse(path.read_text(encoding="utf-8"), config)
+  return config
 
 
 def _vendor_dir() -> Path:
