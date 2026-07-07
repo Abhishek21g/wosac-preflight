@@ -46,6 +46,8 @@ def _run_container(score_argv: list[str], extra_mounts: list[str] | None = None)
       "docker",
       "run",
       "--rm",
+      "--platform",
+      "linux/amd64",
       "-v",
       f"{ROOT}:/workspace",
       "-w",
